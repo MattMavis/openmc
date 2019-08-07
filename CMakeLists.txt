@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
-project(openmc C CXX)
+project(openmc C CXX Fortran)
+enable_language(Fortran)
 
 # Setup output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -19,6 +20,7 @@ option(debug    "Compile with debug flags"                       OFF)
 option(optimize "Turn on all compiler optimization flags"        OFF)
 option(coverage "Compile with coverage analysis flags"           OFF)
 option(dagmc    "Enable support for DAGMC (CAD) geometry"        OFF)
+option(cR2SMODE "Enable cR2S support"                            ON)
 
 #===============================================================================
 # MPI for distributed-memory parallelism
@@ -83,6 +85,12 @@ if(openmp)
     list(APPEND ldflags ${OpenMP_CXX_FLAGS})
   endif()
 endif()
+
+#set(CMAKE_Fortran_COMPILER /usr/local/depot/gcc-7.3.0/bin/gfortran)
+set(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS F90)
+#enable_language(Fortran)
+
+
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -171,6 +179,16 @@ target_include_directories(faddeeva PUBLIC vendor/faddeeva/)
 target_compile_options(faddeeva PRIVATE ${cxxflags})
 
 #===============================================================================
+# cR2S library
+#===============================================================================
+if (cR2SMODE)
+  set(cR2S_Files "${PROJECT_SOURCE_DIR}/vendor/cr2s/utils_api.F90;${PROJECT_SOURCE_DIR}/vendor/cr2s/cR2S_modules.F90;${PROJECT_SOURCE_DIR}/vendor/cr2s/cR2S_modules_api.F90;${PROJECT_SOURCE_DIR}/vendor/cr2s/icR2S_modules_api.F90")
+  add_library(cR2S STATIC ${cR2S_Files})
+  target_include_directories(cR2S PUBLIC ${PROJECT_SOURCE_DIR}/vendor/cr2s/)
+endif()
+
+
+#===============================================================================
 # libopenmc
 #===============================================================================
 
@@ -197,6 +215,7 @@ list(APPEND libopenmc_SOURCES
   src/lattice.cpp
   src/material.cpp
   src/math_functions.cpp
+  src/mcr2ssrc.cpp
   src/mesh.cpp
   src/message_passing.cpp
   src/mgxs.cpp
@@ -316,8 +335,11 @@ endif()
 #===============================================================================
 add_executable(openmc src/main.cpp)
 target_compile_options(openmc PRIVATE ${cxxflags})
-target_link_libraries(openmc libopenmc)
-
+if(cR2SMODE)
+  target_link_libraries(openmc libopenmc cR2S)
+else()
+  target_link_libraries(openmc libopenmc)
+endif()
 # Ensure C++14 standard is used. Starting with CMake 3.8, another way this could
 # be done is using the cxx_std_14 compiler feature.
 set_target_properties(
