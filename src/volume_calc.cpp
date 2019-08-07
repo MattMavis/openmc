@@ -271,6 +271,9 @@ std::vector<VolumeCalculation::Result> VolumeCalculation::execute() const
 void VolumeCalculation::to_hdf5(const std::string& filename,
   const std::vector<Result>& results) const
 {
+  // Define null values for nuclides and atoms
+  std::vector<std::string> name_null = {"null"};
+  std::vector<double> vector_null = {0.0E0 };
   // Create HDF5 file
   hid_t file_id = file_open(filename, 'w');
 
@@ -326,7 +329,17 @@ void VolumeCalculation::to_hdf5(const std::string& filename,
       write_dataset(group_id, "nuclides", nucnames);
       write_dataset(group_id, "atoms", atom_data);
     }
+    //If results.nuclides is empty. Set nuclides and atoms dataset to null values
+    else {
+      // Create array of null values for atoms
+      xt::xtensor<double, 2> atom_null({1, 2});
+      xt::view(atom_null, xt::all(), 0) = xt::adapt(vector_null);
+      xt::view(atom_null, xt::all(), 1) = xt::adapt(vector_null);
 
+      //Write null values
+      write_dataset(group_id, "nuclides", name_null);
+      write_dataset(group_id, "atoms", atom_null);
+    }
     close_group(group_id);
   }
 

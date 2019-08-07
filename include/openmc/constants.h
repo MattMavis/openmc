@@ -95,7 +95,6 @@ constexpr double AMU              {1.660539040e-27}; // 1 amu in kg
 constexpr double C_LIGHT          {2.99792458e8}; // speed of light in m/s
 constexpr double N_AVOGADRO       {0.6022140857}; // Avogadro's number in 10^24/mol
 constexpr double K_BOLTZMANN      {8.6173303e-5}; // Boltzmann constant in eV/K
-
 // Electron subshell labels
 constexpr std::array<const char*, 39> SUBSHELLS =  {
   "K", "L1", "L2", "L3", "M1", "M2", "M3", "M4", "M5",

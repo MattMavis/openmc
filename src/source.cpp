@@ -21,6 +21,8 @@
 #include "openmc/simulation.h"
 #include "openmc/state_point.h"
 #include "openmc/xml_interface.h"
+#include "openmc/cR2Sheader.h"
+#include "openmc/locations.h"
 
 namespace openmc {
 
@@ -60,6 +62,17 @@ SourceDistribution::SourceDistribution(pugi::xml_node node)
   if (check_for_node(node, "strength")) {
     strength_ = std::stod(get_node_value(node, "strength"));
   }
+
+  if (settings::mcr2s == true){
+    write_message("Reading CDGS ...", 6);
+    ReadCDGS();
+    write_message("CDGS Read",6);
+    long src, id;
+    double x, y, z, u, v, w, E, wgt, t;
+    write_message("Starting MCR2SSrc ...",6);
+    MCR2SSrc(src, &x, &y, &z, &u, &v, &w, &E, &wgt, &t, id);
+    write_message("MCR2SScr Finished",6);
+    }
 
   // Check for external source file
   if (check_for_node(node, "file")) {
@@ -157,8 +170,16 @@ Particle::Bank SourceDistribution::sample() const
 
     // Sample spatial distribution
     site.r = space_->sample();
+    std::cout << typeid(site.r).name() << std::endl;
+    std::cout << typeid(site.r.x).name() << std::endl;
+    std::cout << typeid(site.r.y).name() << std::endl;
+    std::cout << typeid(site.r.z).name() << std::endl;
+    
     double xyz[] {site.r.x, site.r.y, site.r.z};
-
+    std::cout << xyz << std::endl;
+    std::cout << xyz[0] << std::endl;
+    std::cout << xyz[1] << std::endl;
+    std::cout << xyz[2] << std::endl;
     // Now search to see if location exists in geometry
     int32_t cell_index, instance;
     int err = openmc_find_cell(xyz, &cell_index, &instance);
@@ -262,6 +283,17 @@ void initialize_source()
     // Close file
     file_close(file_id);
 
+  } else if(settings::mcr2s == true) {
+    // Generation source sites from specified distribution in user input
+    for (int64_t i = 0; i < simulation::work_per_rank; ++i) {
+      // initialize random number seed
+      int64_t id = simulation::total_gen*settings::n_particles +
+        simulation::work_index[mpi::rank] + i + 1;
+      set_particle_seed(id);
+
+      // sample external source distribution
+      simulation::source_bank[i] = sample_external_source();
+    }
   } else {
     // Generation source sites from specified distribution in user input
     for (int64_t i = 0; i < simulation::work_per_rank; ++i) {
