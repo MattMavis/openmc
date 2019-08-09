@@ -46,6 +46,7 @@ bool create_fission_neutrons {true};
 bool dagmc                   {false};
 bool entropy_on              {false};
 bool legendre_to_tabular     {true};
+bool mcr2s                   {false};
 bool output_summary          {true};
 bool output_tallies          {true};
 bool particle_restart_run    {false};
@@ -217,12 +218,20 @@ void read_settings_xml()
     dagmc = get_node_value_bool(root, "dagmc");
   }
 
+  
+
 #ifndef DAGMC
   if (dagmc) {
     fatal_error("DAGMC mode unsupported for this build of OpenMC");
   }
 #endif
 
+  // MCR2S source check
+  if (check_for_node(root, "mcr2s")) {
+    mcr2s = get_node_value_bool(root, "mcr2s");
+    write_message("MCR2S Enabled",6);
+  }
+  
   // To this point, we haven't displayed any output since we didn't know what
   // the verbosity is. Now that we checked for it, show the title if necessary
   if (mpi::master) {
@@ -402,6 +411,8 @@ void read_settings_xml()
     };
     model::external_sources.push_back(std::move(source));
   }
+  
+  
 
   // Check if we want to write out source
   if (check_for_node(root, "write_initial_source")) {

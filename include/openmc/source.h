@@ -12,6 +12,7 @@
 #include "openmc/distribution_multi.h"
 #include "openmc/distribution_spatial.h"
 #include "openmc/particle.h"
+#include "cR2Sheader.h"
 
 namespace openmc {
 
@@ -24,7 +25,6 @@ class SourceDistribution;
 namespace model {
 
 extern std::vector<SourceDistribution> external_sources;
-
 } // namespace model
 
 //==============================================================================
@@ -40,7 +40,7 @@ public:
   //! Sample from the external source distribution
   //! \return Sampled site
   Particle::Bank sample() const;
-
+  Particle::Bank MCR2S() const;
   // Properties
   double strength() const { return strength_; }
 private:
@@ -62,6 +62,8 @@ extern "C" void initialize_source();
 //! source strength
 //! \return Sampled source site
 Particle::Bank sample_external_source();
+
+Particle::Bank sample_external_MCR2S_source();
 
 //! Fill source bank at end of generation for fixed source simulations
 void fill_source_bank_fixedsource();

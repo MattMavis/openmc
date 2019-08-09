@@ -92,9 +92,11 @@ set(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS F90)
 
 
 
+
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-list(APPEND cxxflags -O2)
+list(APPEND cxxflags -g -O2)
 if(debug)
   list(REMOVE_ITEM cxxflags -O2)
   list(APPEND cxxflags -g -O0)
@@ -112,6 +114,8 @@ if(coverage)
 endif()
 
 # Show flags being used
+SET(CMAKE_CXX_FLAGS_DEBUG "-O0")
+SET(CMAKE_C_FLAGS_DEBUG "-O0")
 message(STATUS "OpenMC C++ flags: ${cxxflags}")
 message(STATUS "OpenMC Linker flags: ${ldflags}")
 

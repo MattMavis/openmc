@@ -20,6 +20,7 @@
 #include "openmc/particle.h"
 #include "openmc/cR2Sarray.h"
 #include "openmc/message_passing.h"
+#include "openmc/position.h"
 
 #define FUNCTION_NAME "MCR2SSrc:"
 namespace openmc{
@@ -32,7 +33,7 @@ static int spatial_sampling = 0;
 static int energy_sampling = 0;
 static int remax;
 static int nmeshes;
-static int verbose_int = 1;
+static int verbose_int = 0;
 static int ignore_cell_int = 0;
 static double total_src;
 
@@ -79,10 +80,10 @@ void ReadCDGS()
   
   
   std::cout << "cR2S Source _ finished reading data" << std::endl;
-  std::cout << src_pointer << std::endl;
-  std::cout << &nmeshes << std::endl;
-  std::cout << &total_src << std::endl;
-  std::cout << verbose_int << std::endl;
+  //std::cout << src_pointer << std::endl;
+  //std::cout << &nmeshes << std::endl;
+  //std::cout << &total_src << std::endl;
+  //std::cout << verbose_int << std::endl;
 }
 
 void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v, 
@@ -113,7 +114,7 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
   char dummyString[4*MAX_STR];
   
   
-  std::cout << "Set up user parameters" << std::endl;
+  //std::cout << "Set up user parameters" << std::endl;
   // Set values from user parameters //
   //spatial_sampling = (int)params[0];
   spatial_sampling = 0;
@@ -133,22 +134,22 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
   } */
  
   //verbose_int = (int)params[4]  ;
-  verbose_int = 1  ;
+  verbose_int = 0;
   
-  std::cout << "Setting random number" << std::endl;
+  //std::cout << "Setting random number" << std::endl;
   prn_set_stream(STREAM_VOLUME);                // Left untouched //
   rnd = prn();                                  // Initialised random number //
   
 
 
-  std::cout << "Setting initial variables" << std::endl;
+  //std::cout << "Setting initial variables" << std::endl;
   *wgt = 1.0;
   cell = 0;
   mat = 0;
   mesh_idx = 0;
   random_numbers = NULL;
   
-  std::cout << "Starting mesh_selection" << std::endl;
+  //std::cout << "Starting mesh_selection" << std::endl;
   c_mesh_selection(src_pointer, spatial_sampling, rnd, total_src, &mesh_idx, wgt, verbose_int);
 
  // Restart point, if re-sampling can't find acceptable cell within limit of attemps //
@@ -158,7 +159,7 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
       
     prn_set_stream(STREAM_SOURCE);
     rnd = prn();
-    std::cout << rnd << std::endl;
+    //std::cout << rnd << std::endl;
     c_voxel_selection(src_pointer, mesh_idx, spatial_sampling, rnd, &selected_voxel, &selected_mesh_element, &i, &j, &k, wgt, verbose_int);
   
     if (verbose_int == 1) printf("Active voxel index : %d\n",selected_mesh_element);
@@ -166,20 +167,21 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
 
     for (resamc=0;resamc<remax;resamc++)
     {   
-        std::cout << "Get random Number" << std::endl;
+        ///std::cout << "Sample " << resamc << std::endl;
+        //std::cout << "Get random Number" << std::endl;
         random_numbers = get_random_numbers(3, ID);
-        std::cout << "Mesh type" << std::endl;
+        //std::cout << "Mesh type" << std::endl;
         if(c_get_meshtype(src_pointer,mesh_idx) == 1)
         {
-            std::cout << "Rec" << std::endl;
+            //std::cout << "Rec" << std::endl;
             c_rec_pos_sample(src_pointer, mesh_idx, i,  j,  k, random_numbers, x, y, z);
-            std::cout << "Sampled Rec" << std::endl;
+            //std::cout << "Sampled Rec" << std::endl;
         }
         else if (c_get_meshtype(src_pointer,mesh_idx) == 2)
         {
-            std::cout << "Cyl" << std::endl;
+            //std::cout << "Cyl" << std::endl;
             c_cyl_pos_sample(src_pointer, mesh_idx, i,  j,  k, random_numbers, x, y, z);
-            std::cout << "Sampled Cyl" << std::endl;
+            //std::cout << "Sampled Cyl" << std::endl;
         }    
         else if (c_get_meshstruc(src_pointer,mesh_idx) == 2)
         {
@@ -189,65 +191,33 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
         
         
         if (verbose_int == 1) printf("Selected point : %f, %f, %f\n", *x, *y, *z);
-        Particle p;
-        Particle::Bank site;
-        site.particle = Particle::Type::photon;
-        settings::photon_transport = true;
-        // Set weight to one by default
-        site.wgt = 1.0;
-        // Repeat sampling source location until a good site has been found
+
         bool found = false;
         int n_reject = 0;
         static int n_accept = 0;
        
-        // Set particle type
-        /* particle_ = Particle::Type::photon;
-        settings::photon_transport = true; */
-        double xpos,ypos,zpos;
-        xpos = *x;
-        ypos = *y;
-        zpos = *z;
-        site.r.x = xpos;
-        site.r.y = ypos;
-        site.r.z = zpos;
         
-        std::cout << typeid(site.r).name() << std::endl;
-        std::cout << typeid(site.r.x).name() << std::endl;
-        std::cout << typeid(site.r.y).name() << std::endl;
-        std::cout << typeid(site.r.z).name() << std::endl;
-        // Sample spatial distribution
-            
-       /*  std::cout << *x << std::endl;
-        std::cout << *y << std::endl;
-        std::cout << *z << std::endl;
-        double xpos = *x;
-        double ypos = *y;
-        double zpos = *z;
-        std::cout << xpos << std::endl;
-        std::cout << ypos << std::endl;
-        std::cout << zpos << std::endl;
-        const double xyz[] {xpos,ypos,zpos}; */
-        std::cout << site.r.x << std::endl;
-        double xyz[] {site.r.x, site.r.y, site.r.z};
-    // Now search to see if location exists in geometry
-        //Position pos {*x,*y,*z};
-        //find_cell(pos,false);
-        std::cout << xyz << std::endl;
+        double xyz[] {*x,*y,*z};
+       
         int32_t cell_index, instance;
-        std::cout << "Find Cell" << std::endl;
-        int err = openmc_find_cell(xyz, &cell_index, &instance); //seg faulting
-        std::cout << "Cell Found" << std::endl;
+        //std::cout << "Find Cell" << std::endl;
+        openmc_find_cell(xyz, &cell_index, &instance); //seg faulting
+        //std::cout << "Cell Found" << std::endl;
         cell = cell_index;
+        //std::cout << cell_index << std::endl;
+        //std::cout << instance << std::endl;
         const auto& c = model::cells[cell_index];
         auto mat_index = c->material_.size() == 1
         ? c->material_[0] : c->material_[instance];
-        if (mat_index = MATERIAL_VOID) {
+        //std::cout << "mat_index = " << mat_index << std::endl;
+        if (mat_index == MATERIAL_VOID) {
             mat = 0; // If material not found, assume to be void = 0 //
           }
         else {
             mat = mat_index;
         }
-        
+        //std::cout << "mat_index = " << mat_index << std::endl;
+        //std::cout << mat << std::endl;
         c_check_position(src_pointer, mesh_idx, selected_mesh_element, cell, (double)1.0, (int)mat, ignore_cell_int, &resample_in_voxel, &selected_cell, verbose_int);
         
         if (resample_in_voxel == 0) 
@@ -274,13 +244,14 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
     
 
     random_numbers = get_random_numbers(2,ID);
+    
     c_energy_selection(src_pointer, mesh_idx, selected_mesh_element, &selected_cell, 
                        energy_sampling, random_numbers, ignore_cell_int, E, wgt);
     free(random_numbers);
    
 
     if (verbose_int == 1) printf("%d,%f,%f,%f,%ld,%f,%f\n", selected_voxel,*x,*y,*z,cell,*E,*wgt);  
-
+    
     break;
   }
 }
@@ -290,7 +261,7 @@ double * get_random_numbers(int quant, long ID)
 
     int i;
     double * random_numbers;
-    prn_set_stream(STREAM_VOLUME);
+    prn_set_stream(STREAM_SOURCE);
     random_numbers = (double*)calloc(quant,sizeof(double));
     
     for (i=0;i<quant;i++)

@@ -764,15 +764,15 @@ module cR2S_modules
     !**********************************************************************************************************
         
     !Set voxel bin boundary based on i,j,k values calculated in voxel select routine.
-    print *, "i =", i , "j=", j, "k=" , k
+    !print *, "i =", i , "j=", j, "k=" , k
     xmin=src%mesh%xrbin(i)
     xmax=src%mesh%xrbin(i+1)
     ymin=src%mesh%ytbin(j)
     ymax=src%mesh%ytbin(j+1)
     zmin=src%mesh%zbin(k)
     zmax=src%mesh%zbin(k+1)
-    print *, "xmin=",xmin,"ymin=",ymin,"zmin=",zmin
-    print *, "xmax=",xmax,"ymax=",ymax,"zmax=",zmax
+    !print *, "xmin=",xmin,"ymin=",ymin,"zmin=",zmin
+    !print *, "xmax=",xmax,"ymax=",ymax,"zmax=",zmax
 
     !Choose point at random in the voxel
     x=xmin+random_nums(1)*(xmax-xmin)

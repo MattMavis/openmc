@@ -2,6 +2,7 @@
 
 #include <array>
 #include <sstream>
+#include <iostream> 
 
 #include "openmc/cell.h"
 #include "openmc/constants.h"
@@ -9,7 +10,6 @@
 #include "openmc/lattice.h"
 #include "openmc/settings.h"
 #include "openmc/simulation.h"
-#include "openmc/string_utils.h"
 #include "openmc/surface.h"
 
 
@@ -254,6 +254,7 @@ find_cell_inner(Particle* p, const NeighborList* neighbor_list)
 bool
 find_cell(Particle* p, bool use_neighbor_lists)
 {
+  //std::cout << "Find Cell with particle" << std::endl;
   // Determine universe (if not yet set, use root universe).
   int i_universe = p->coord_[p->n_coord_-1].universe;
   if (i_universe == C_NONE) {
@@ -368,13 +369,19 @@ BoundaryInfo distance_to_boundary(Particle* p)
   for (int i = 0; i < p->n_coord_; i++) {
     const auto& coord {p->coord_[i]};
     Position r {coord.r};
+    std::cout << "coord = " << r << std::endl;
     Direction u {coord.u};
+    std::cout << "dir = " << u << std::endl;
     Cell& c {*model::cells[coord.cell]};
+    
 
     // Find the oncoming surface in this cell and the distance to it.
     auto surface_distance = c.distance(r, u, p->surface_);
     d_surf = surface_distance.first;
+    std::cout << "d_surf = " << d_surf << std::endl;
     level_surf_cross = surface_distance.second;
+    //std::cout << "level_surf_cross = " << level_surf_cross << std::endl;
+
 
     // Find the distance to the next lattice tile crossing.
     if (coord.lattice != C_NONE) {
@@ -413,6 +420,7 @@ BoundaryInfo distance_to_boundary(Particle* p)
     // a higher level then we need to make sure that the higher level boundary
     // is selected.  This logic must consider floating point precision.
     double& d = info.distance;
+    //std::cout << "d = " << d << std::endl;
     if (d_surf < d_lat - FP_COINCIDENT) {
       if (d == INFINITY || (d - d_surf)/d >= FP_REL_PRECISION) {
         d = d_surf;
@@ -424,8 +432,12 @@ BoundaryInfo distance_to_boundary(Particle* p)
         if (c.simple_) {
           info.surface_index = level_surf_cross;
         } else {
+          //std::cout << "r = " << r << ", d_surf = " << d_surf << ", u = " << u << std::endl;
           Position r_hit = r + d_surf * u;
+          //std::cout << "r_hit = " << r_hit << std::endl;
+         // std::cout << "level_surf_cross = " << level_surf_cross << std::endl;
           Surface& surf {*model::surfaces[std::abs(level_surf_cross)-1]};
+         // std::cout << "level_surf_cross = " << level_surf_cross << std::endl;
           Direction norm = surf.normal(r_hit);
           if (u.dot(norm) > 0) {
             info.surface_index = std::abs(level_surf_cross);
@@ -448,6 +460,7 @@ BoundaryInfo distance_to_boundary(Particle* p)
       }
     }
   }
+  
   return info;
 }
 
@@ -459,10 +472,11 @@ extern "C" int
 openmc_find_cell(const double* xyz, int32_t* index, int32_t* instance)
 {
   Particle p;
-
+  //std::cout << "set p.r" << std::endl;
   p.r() = Position{xyz};
+  //std::cout << "set p.u" << std::endl;
   p.u() = {0.0, 0.0, 1.0};
-
+  //std::cout << "Find Cell Function Call" << std::endl;
   if (!find_cell(&p, false)) {
     std::stringstream msg;
     msg << "Could not find cell at position (" << p.r().x << ", " << p.r().y
@@ -470,27 +484,11 @@ openmc_find_cell(const double* xyz, int32_t* index, int32_t* instance)
     set_errmsg(msg);
     return OPENMC_E_GEOMETRY;
   }
-
+  //std::cout << "set index" << std::endl;
   *index = p.coord_[p.n_coord_-1].cell;
+  //std::cout << "set instance" << std::endl;
   *instance = p.cell_instance_;
   return 0;
 }
-
-extern "C" int openmc_global_bounding_box(double* llc, double* urc) {
-  auto bbox = model::universes.at(model::root_universe)->bounding_box();
-
-  // set lower left corner values
-  llc[0] = bbox.xmin;
-  llc[1] = bbox.ymin;
-  llc[2] = bbox.zmin;
-
-  // set upper right corner values
-  urc[0] = bbox.xmax;
-  urc[1] = bbox.ymax;
-  urc[2] = bbox.zmax;
-
-  return 0;
-}
-
 
 } // namespace openmc

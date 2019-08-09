@@ -63,16 +63,7 @@ SourceDistribution::SourceDistribution(pugi::xml_node node)
     strength_ = std::stod(get_node_value(node, "strength"));
   }
 
-  if (settings::mcr2s == true){
-    write_message("Reading CDGS ...", 6);
-    ReadCDGS();
-    write_message("CDGS Read",6);
-    long src, id;
-    double x, y, z, u, v, w, E, wgt, t;
-    write_message("Starting MCR2SSrc ...",6);
-    MCR2SSrc(src, &x, &y, &z, &u, &v, &w, &E, &wgt, &t, id);
-    write_message("MCR2SScr Finished",6);
-    }
+  
 
   // Check for external source file
   if (check_for_node(node, "file")) {
@@ -126,6 +117,7 @@ SourceDistribution::SourceDistribution(pugi::xml_node node)
       if (check_for_node(node_angle, "type"))
         type = get_node_value(node_angle, "type", true, true);
       if (type == "isotropic") {
+        std::cout << "Set Isotropic" << std::endl;
         angle_ = UPtrAngle{new Isotropic()};
       } else if (type == "monodirectional") {
         angle_ = UPtrAngle{new Monodirectional(node_angle)};
@@ -149,6 +141,14 @@ SourceDistribution::SourceDistribution(pugi::xml_node node)
       // Default to a Watt spectrum with parameters 0.988 MeV and 2.249 MeV^-1
       energy_ = UPtrDist{new Watt(0.988e6, 2.249e-6)};
     }
+    if (settings::mcr2s == true){
+    write_message("Reading CDGS ...", 6);
+    ReadCDGS();
+    write_message("CDGS Read",6);
+    angle_ = UPtrAngle{new Isotropic()};
+    particle_ = Particle::Type::neutron;
+    //settings::photon_transport = true;
+    }
   }
 }
 
@@ -170,16 +170,10 @@ Particle::Bank SourceDistribution::sample() const
 
     // Sample spatial distribution
     site.r = space_->sample();
-    std::cout << typeid(site.r).name() << std::endl;
-    std::cout << typeid(site.r.x).name() << std::endl;
-    std::cout << typeid(site.r.y).name() << std::endl;
-    std::cout << typeid(site.r.z).name() << std::endl;
+    
     
     double xyz[] {site.r.x, site.r.y, site.r.z};
-    std::cout << xyz << std::endl;
-    std::cout << xyz[0] << std::endl;
-    std::cout << xyz[1] << std::endl;
-    std::cout << xyz[2] << std::endl;
+    
     // Now search to see if location exists in geometry
     int32_t cell_index, instance;
     int err = openmc_find_cell(xyz, &cell_index, &instance);
@@ -194,12 +188,12 @@ Particle::Bank SourceDistribution::sample() const
           const auto& c = model::cells[cell_index];
           auto mat_index = c->material_.size() == 1
             ? c->material_[0] : c->material_[instance];
-
           if (mat_index == MATERIAL_VOID) {
             found = false;
           } else {
             if (!model::materials[mat_index]->fissionable_) found = false;
           }
+          
         }
       }
     }
@@ -249,6 +243,24 @@ Particle::Bank SourceDistribution::sample() const
   return site;
 }
 
+Particle::Bank SourceDistribution::MCR2S() const
+{
+  long src, id;
+  double x, y, z, u, v, w, E, wgt, t;
+  
+  Particle::Bank site;
+  MCR2SSrc(src, &x, &y, &z, &u, &v, &w, &E, &wgt, &t, id);
+  site.r.x = x;
+  site.r.y = y;
+  site.r.z = z;
+  site.E = E;
+  site.wgt = wgt;
+  site.u = angle_->sample();
+  
+  site.particle = particle_;
+  site.delayed_group = 0;
+  return site;
+}
 //==============================================================================
 // Non-member functions
 //==============================================================================
@@ -284,6 +296,8 @@ void initialize_source()
     file_close(file_id);
 
   } else if(settings::mcr2s == true) {
+    //settings::photon_transport = true;
+    int success = 0;
     // Generation source sites from specified distribution in user input
     for (int64_t i = 0; i < simulation::work_per_rank; ++i) {
       // initialize random number seed
@@ -292,7 +306,11 @@ void initialize_source()
       set_particle_seed(id);
 
       // sample external source distribution
-      simulation::source_bank[i] = sample_external_source();
+      
+      simulation::source_bank[i] = sample_external_MCR2S_source();
+      success += 1;
+      std::cout << "Success = " << success << std::endl;
+      write_message("MCR2SScr Finished",6);
     }
   } else {
     // Generation source sites from specified distribution in user input
@@ -303,6 +321,7 @@ void initialize_source()
       set_particle_seed(id);
 
       // sample external source distribution
+      
       simulation::source_bank[i] = sample_external_source();
     }
   }
@@ -357,6 +376,25 @@ Particle::Bank sample_external_source()
 void free_memory_source()
 {
   model::external_sources.clear();
+}
+
+Particle::Bank sample_external_MCR2S_source()
+{
+  prn_set_stream(STREAM_SOURCE);
+  double total_strength = 0.0;
+  for (auto& s : model::external_sources)
+    total_strength += s.strength();
+  int i = 0;
+  if (model::external_sources.size() > 1) {
+    double xi = prn()*total_strength;
+    double c = 0.0;
+    for (; i < model::external_sources.size(); ++i) {
+      c += model::external_sources[i].strength();
+      if (xi < c) break;
+    }
+  }
+  Particle::Bank site {model::external_sources[i].MCR2S()};
+  return site;
 }
 
 void fill_source_bank_fixedsource()

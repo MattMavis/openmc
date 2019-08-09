@@ -19,6 +19,7 @@
 #include <signal.h>
 #include <unistd.h>
 
+
 #ifndef NO_GFX_MODE
 #include <gd.h>
 #endif

@@ -7,20 +7,12 @@ namespace openmc {
 void
 ParticleFilter::from_xml(pugi::xml_node node)
 {
-  auto particles = get_node_array<std::string>(node, "bins");
+  auto particles = get_node_array<int>(node, "bins");
 
   // Convert to vector of Particle::Type
   std::vector<Particle::Type> types;
   for (auto& p : particles) {
-    if (p == "neutron") {
-      types.push_back(Particle::Type::neutron);
-    } else if (p == "photon") {
-      types.push_back(Particle::Type::photon);
-    } else if (p == "electron") {
-      types.push_back(Particle::Type::electron);
-    } else if (p == "positron") {
-      types.push_back(Particle::Type::positron);
-    }
+    types.push_back(static_cast<Particle::Type>(p - 1));
   }
   this->set_particles(types);
 }
@@ -55,22 +47,9 @@ void
 ParticleFilter::to_statepoint(hid_t filter_group) const
 {
   Filter::to_statepoint(filter_group);
-  std::vector<std::string> particles;
+  std::vector<int> particles;
   for (auto p : particles_) {
-    switch (p) {
-    case Particle::Type::neutron:
-      particles.push_back("neutron");
-      break;
-    case Particle::Type::photon:
-      particles.push_back("photon");
-      break;
-    case Particle::Type::electron:
-      particles.push_back("electron");
-      break;
-    case Particle::Type::positron:
-      particles.push_back("positron");
-      break;
-    }
+    particles.push_back(static_cast<int>(p) + 1);
   }
   write_dataset(filter_group, "bins", particles);
 }
