@@ -195,7 +195,7 @@ int openmc_next_batch(int* status)
       // grab source particle from bank
       Particle p;
       initialize_history(&p, simulation::current_work);
-
+      
       // transport particle
       p.transport();
     }
@@ -460,8 +460,10 @@ void finalize_generation()
     }
 
   } else if (settings::run_mode == RUN_MODE_FIXEDSOURCE) {
+      if (settings::mcr2s == false){   
     // For fixed-source mode, we need to sample the external source
-    fill_source_bank_fixedsource();
+          fill_source_bank_fixedsource();
+      }
   }
 }
 

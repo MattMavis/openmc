@@ -253,6 +253,7 @@ Particle::Bank SourceDistribution::MCR2S() const
   site.r.x = x;
   site.r.y = y;
   site.r.z = z;
+  std::cout << "Coord = " << site.r << std::endl;
   site.E = E;
   site.wgt = wgt;
   site.u = angle_->sample();
@@ -306,8 +307,11 @@ void initialize_source()
       set_particle_seed(id);
 
       // sample external source distribution
-      
       simulation::source_bank[i] = sample_external_MCR2S_source();
+      auto site = simulation::source_bank[i];
+      std::cout << "site.r = " << site.r << std::endl;
+      
+      
       success += 1;
       std::cout << "Success = " << success << std::endl;
       write_message("MCR2SScr Finished",6);

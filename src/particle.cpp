@@ -164,13 +164,10 @@ Particle::transport()
 
     // Store pre-collision particle properties
     wgt_last_ = wgt_;
-    std::cout << "wgt_last_ = " << wgt_last_ << std::endl;
     E_last_ = E_;
-    std::cout << "E_last_ = " << E_last_ << std::endl;
     u_last_ = this->u();
-    std::cout << "u_last_ = " << u_last_ << std::endl;
     r_last_ = this->r();
-    std::cout << "r_last_ = " << r_last_ << std::endl;
+    
 
     // Reset event variables
     event_ = EVENT_KILL;
