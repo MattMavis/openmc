@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plots>
+  <plot color_by="material" filename="plot_3d_vol_test" id="1" type="voxel">
+    <origin>0.0 0.0 0.0</origin>
+    <width>1500.0 1500.0 1500.0</width>
+    <pixels>300 300 300</pixels>
+  </plot>
+</plots>

@@ -1,0 +1,128 @@
+<?xml version='1.0' encoding='utf-8'?>
+<settings>
+  <run_mode>fixed source</run_mode>
+  <particles>7000</particles>
+  <batches>2</batches>
+  <inactive>0</inactive>
+  <source strength="1.0">
+    <space type="point">
+      <parameters>266 -266 0</parameters>
+    </space>
+    <angle type="isotropic" />
+    <energy type="discrete">
+      <parameters>14000000.0 1</parameters>
+    </energy>
+  </source>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>0 -523 -523</lower_left>
+    <upper_right>262 -261 -261</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>0 -523 -261</lower_left>
+    <upper_right>262 -261 1</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>0 -523 1</lower_left>
+    <upper_right>262 -261 263</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>0 -523 263</lower_left>
+    <upper_right>262 -261 525</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>0 -261 -523</lower_left>
+    <upper_right>262 1 -261</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>0 -261 -261</lower_left>
+    <upper_right>262 1 1</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>0 -261 1</lower_left>
+    <upper_right>262 1 263</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>0 -261 263</lower_left>
+    <upper_right>262 1 525</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>262 -523 -523</lower_left>
+    <upper_right>524 -261 -261</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>262 -523 -261</lower_left>
+    <upper_right>524 -261 1</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>262 -523 1</lower_left>
+    <upper_right>524 -261 263</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>262 -523 263</lower_left>
+    <upper_right>524 -261 525</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>262 -261 -523</lower_left>
+    <upper_right>524 1 -261</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>262 -261 -261</lower_left>
+    <upper_right>524 1 1</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>262 -261 1</lower_left>
+    <upper_right>524 1 263</upper_right>
+  </volume_calc>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1 2 3 4 5</domain_ids>
+    <samples>1000000</samples>
+    <lower_left>262 -261 263</lower_left>
+    <upper_right>524 1 525</upper_right>
+  </volume_calc>
+</settings>
