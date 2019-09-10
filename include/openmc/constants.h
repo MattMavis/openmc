@@ -425,6 +425,20 @@ constexpr int RUN_MODE_VOLUME      {5};
 // For non-accelerated regions on coarse mesh overlay
 constexpr int CMFD_NOACCEL {-1};
 
+
+// ============================================================================
+// MCR2S CONSTANTS
+// SPATIAL SAMPLING MODE
+constexpr int MCR2S_UNIFORM_SPATIAL_SAMPLING {0};
+constexpr int MCR2S_ANALOGUE_SPATIAL_SAMPLING {1};
+
+// ENERGY SAMPLING MODE
+constexpr int MCR2S_ANALOGUE_ENERGY_SAMPLING {0};
+constexpr int MCR2S_UNIFORM_ENERGY_SAMPLING {1};
+
+//IGNORE CELL UNDER MESH
+constexpr int IGNORE_CELL_UNDER_MESH {0};
+
 } // namespace openmc
 
 #endif // OPENMC_CONSTANTS_H

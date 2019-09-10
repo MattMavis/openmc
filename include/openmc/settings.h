@@ -44,6 +44,7 @@ extern bool source_latest;            //!< write latest source at each batch?
 extern bool source_separate;          //!< write source to separate file?
 extern bool source_write;             //!< write source in HDF5 files?
 extern bool survival_biasing;         //!< use survival biasing?
+extern bool mcr2s;                    //!< use mcr2s source?
 extern bool temperature_multipole;    //!< use multipole data?
 extern "C" bool trigger_on;           //!< tally triggers enabled?
 extern bool trigger_predict;          //!< predict batches for triggers?
@@ -91,6 +92,9 @@ extern int trigger_batch_interval;   //!< Batch interval for triggers
 extern "C" int verbosity;                //!< How verbose to make output
 extern double weight_cutoff;         //!< Weight cutoff for Russian roulette
 extern double weight_survive;        //!< Survival weight after Russian roulette
+extern int mcr2s_spatial_sampling;   // How to sample spatial points from the MCR2S input
+extern int mcr2s_energy_sampling;   // How to sample energy values from the MCR2S input
+extern int mcr2s_remax;             // How many spatial retries before abandoning the voxel
 } // namespace settings
 
 //==============================================================================

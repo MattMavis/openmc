@@ -141,13 +141,20 @@ SourceDistribution::SourceDistribution(pugi::xml_node node)
       // Default to a Watt spectrum with parameters 0.988 MeV and 2.249 MeV^-1
       energy_ = UPtrDist{new Watt(0.988e6, 2.249e-6)};
     }
+
+    // Determine if MCR2S commonfile is to by used to generate a source
     if (settings::mcr2s == true){
-    write_message("Reading CDGS ...", 6);
-    ReadCDGS();
-    write_message("CDGS Read",6);
-    angle_ = UPtrAngle{new Isotropic()};
-    particle_ = Particle::Type::neutron;
-    //settings::photon_transport = true;
+      // Read in the commonfile
+      write_message("Reading CDGS ...", 6);
+      ReadCDGS();
+      write_message("CDGS Read",6);
+      // The following code is redundency to make sure the right settings are enabled.
+      // Set angle to isotropic
+      angle_ = UPtrAngle{new Isotropic()};
+      // Set particle type to photon
+      particle_ = Particle::Type::photon;
+      // Enable photon transport
+      settings::photon_transport = true;
     }
   }
 }
@@ -208,13 +215,13 @@ Particle::Bank SourceDistribution::sample() const
       }
     }
   }
-
+  //std::cout << site.r << std::endl;
   // Increment number of accepted samples
   ++n_accept;
 
   // Sample angle
   site.u = angle_->sample();
-
+  //std::cout << site.u << std::endl;
   // Check for monoenergetic source above maximum particle energy
   auto p = static_cast<int>(particle_);
   auto energy_ptr = dynamic_cast<Discrete*>(energy_.get());
@@ -253,7 +260,6 @@ Particle::Bank SourceDistribution::MCR2S() const
   site.r.x = x;
   site.r.y = y;
   site.r.z = z;
-  std::cout << "Coord = " << site.r << std::endl;
   site.E = E;
   site.wgt = wgt;
   site.u = angle_->sample();
@@ -298,32 +304,24 @@ void initialize_source()
 
   } else if(settings::mcr2s == true) {
     //settings::photon_transport = true;
-    int success = 0;
-    // Generation source sites from specified distribution in user input
+    // Generation source sites from MCR2S commonfile
     for (int64_t i = 0; i < simulation::work_per_rank; ++i) {
-      // initialize random number seed
       int64_t id = simulation::total_gen*settings::n_particles +
         simulation::work_index[mpi::rank] + i + 1;
       set_particle_seed(id);
-
-      // sample external source distribution
+      // sample external source distribution from MCR2S commonfile
+      //std::cout << i << std::endl;
       simulation::source_bank[i] = sample_external_MCR2S_source();
-      auto site = simulation::source_bank[i];
-      std::cout << "site.r = " << site.r << std::endl;
-      
-      
-      success += 1;
-      std::cout << "Success = " << success << std::endl;
-      write_message("MCR2SScr Finished",6);
     }
   } else {
     // Generation source sites from specified distribution in user input
+    std::cout << "Producing source external source distribution" << std::endl;
     for (int64_t i = 0; i < simulation::work_per_rank; ++i) {
       // initialize random number seed
       int64_t id = simulation::total_gen*settings::n_particles +
         simulation::work_index[mpi::rank] + i + 1;
       set_particle_seed(id);
-
+      //std::cout << i << std::endl;
       // sample external source distribution
       
       simulation::source_bank[i] = sample_external_source();
@@ -384,10 +382,15 @@ void free_memory_source()
 
 Particle::Bank sample_external_MCR2S_source()
 {
+  // Set the random number generator to the source stream.
   prn_set_stream(STREAM_SOURCE);
+
+  // Determine total source strength
   double total_strength = 0.0;
   for (auto& s : model::external_sources)
     total_strength += s.strength();
+
+  // Sample from among multiple source distributions
   int i = 0;
   if (model::external_sources.size() > 1) {
     double xi = prn()*total_strength;
@@ -397,6 +400,7 @@ Particle::Bank sample_external_MCR2S_source()
       if (xi < c) break;
     }
   }
+  // Sample source site from i-th source distribution from the MCR2S commonfile
   Particle::Bank site {model::external_sources[i].MCR2S()};
   return site;
 }

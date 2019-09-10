@@ -105,6 +105,10 @@ int trigger_batch_interval {1};
 int verbosity {7};
 double weight_cutoff {0.25};
 double weight_survive {1.0};
+int mcr2s_spatial_sampling;
+int mcr2s_energy_sampling;
+int mcr2s_remax;
+
 
 } // namespace settings
 
@@ -230,8 +234,40 @@ void read_settings_xml()
   if (check_for_node(root, "mcr2s")) {
     mcr2s = get_node_value_bool(root, "mcr2s");
     write_message("MCR2S Enabled",6);
+
+    // Check for spatial sampling mode. If non given default to analogue.
+    if (check_for_node(root, "mcr2s_energy_sampling")) {
+      auto temp_str = get_node_value(root, "mcr2s_energy_sampling", true, true);    
+      if (temp_str == "uniform"){
+        mcr2s_energy_sampling = MCR2S_UNIFORM_ENERGY_SAMPLING;
+      } else {
+        mcr2s_energy_sampling = MCR2S_ANALOGUE_ENERGY_SAMPLING;
+      }
+    } else {
+      mcr2s_energy_sampling = MCR2S_ANALOGUE_ENERGY_SAMPLING;
+    }
+  
+    // Check for energy sampling mode. If non given default to analogue.
+    if (check_for_node(root, "mcr2s_spatial_sampling")) {
+      auto temp_str = get_node_value(root, "mcr2s_spatial_sampling", true, true);    
+      if (temp_str == "uniform"){
+        mcr2s_spatial_sampling = MCR2S_UNIFORM_SPATIAL_SAMPLING;
+      } else {
+        mcr2s_spatial_sampling = MCR2S_ANALOGUE_SPATIAL_SAMPLING;
+      }
+    } else {
+      mcr2s_spatial_sampling = MCR2S_ANALOGUE_SPATIAL_SAMPLING;
+    }
+    //Check for user inputted spatial retry amount. If non then default to 1000.
+    if (check_for_node(root,"mcr2s_remax")) {
+      mcr2s_remax = std::stoi(get_node_value(root, "mcr2s_remax"));
+    } else {
+      mcr2s_remax = 1000;
+    }
   }
   
+  
+
   // To this point, we haven't displayed any output since we didn't know what
   // the verbosity is. Now that we checked for it, show the title if necessary
   if (mpi::master) {

@@ -246,7 +246,7 @@ read_ce_cross_sections(const std::vector<std::vector<double>>& nuc_temps,
           LibraryKey key {Library::Type::photon, element};
           int idx = data::library_map[key];
           std::string& filename = data::libraries[idx].path_;
-          write_message("Reading " + element + " from " + filename, 6);
+          write_message("Reading " + element + " from " + filename + ". PHOTON", 6);
 
           // Open file and make sure version is sufficient
           hid_t file_id = file_open(filename, 'r');

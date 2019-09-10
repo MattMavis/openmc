@@ -3,8 +3,10 @@
 #include <ctime>
 #include <vector>
 #include <array>
+#include <typeinfo>
 
 #include "openmc/bank.h"
+#include "openmc/constants.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/random_lcg.h"
@@ -33,7 +35,7 @@ static int spatial_sampling = 0;
 static int energy_sampling = 0;
 static int remax;
 static int nmeshes;
-static int verbose_int = 0;
+static int verbose_int = 1;
 static int ignore_cell_int = 0;
 static double total_src;
 
@@ -114,30 +116,24 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
   char dummyString[4*MAX_STR];
   
   
-  //std::cout << "Set up user parameters" << std::endl;
-  // Set values from user parameters //
-  //spatial_sampling = (int)params[0];
-  spatial_sampling = 0;
-  //energy_sampling = (int)params[1];
-  energy_sampling = 0;
-  //ignore_cell_int = (int)params[2];
-  ignore_cell_int = 0;
-  remax = 1000;
-
-   /* if (params[3] > 0)
-  {
-      remax = (long)params[3];
-  }
-  else
-  {
-      remax = 1000;
-  } */
- 
-  //verbose_int = (int)params[4]  ;
-  verbose_int = 0;
   
-  //std::cout << "Setting random number" << std::endl;
-  prn_set_stream(STREAM_VOLUME);                // Left untouched //
+  // Set values from user parameters //
+  spatial_sampling = int(settings::mcr2s_spatial_sampling);
+  std::cout << "spatial = " << spatial_sampling << std::endl;
+
+  energy_sampling = int(settings::mcr2s_energy_sampling);    
+  std::cout << "energy = " << energy_sampling << std::endl;
+
+  ignore_cell_int = int(IGNORE_CELL_UNDER_MESH);
+  std::cout << "ignore = " << ignore_cell_int << std::endl;
+  
+  remax = int(settings::mcr2s_remax);
+  std::cout << "remax = " << remax << std::endl;
+
+  verbose_int = 1;
+  
+  std::cout << "Setting random number" << std::endl;
+  prn_set_stream(STREAM_SOURCE);                // Left untouched //
   rnd = prn();                                  // Initialised random number //
   
 
@@ -149,7 +145,8 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
   mesh_idx = 0;
   random_numbers = NULL;
   
-  //std::cout << "Starting mesh_selection" << std::endl;
+  std::cout << "Starting mesh_selection" << std::endl;
+  std::cout << src_pointer << std::endl;
   c_mesh_selection(src_pointer, spatial_sampling, rnd, total_src, &mesh_idx, wgt, verbose_int);
 
  // Restart point, if re-sampling can't find acceptable cell within limit of attemps //
@@ -160,6 +157,12 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
     prn_set_stream(STREAM_SOURCE);
     rnd = prn();
     //std::cout << rnd << std::endl;
+    std::cout << "Starting voxel_selection" << std::endl;
+    std::cout << src_pointer << std::endl;
+    //std::cout << mesh_idx << std::endl;
+    //std::cout << spatial_sampling << std::endl;
+    //std::cout << rnd << std::endl;
+    //std::cout << wgt << std::endl;
     c_voxel_selection(src_pointer, mesh_idx, spatial_sampling, rnd, &selected_voxel, &selected_mesh_element, &i, &j, &k, wgt, verbose_int);
   
     if (verbose_int == 1) printf("Active voxel index : %d\n",selected_mesh_element);
@@ -200,9 +203,9 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
         double xyz[] {*x,*y,*z};
        
         int32_t cell_index, instance;
-        //std::cout << "Find Cell" << std::endl;
+        std::cout << "Find Cell" << std::endl;
         openmc_find_cell(xyz, &cell_index, &instance); //seg faulting
-        //std::cout << "Cell Found" << std::endl;
+        std::cout << "Cell Found" << std::endl;
         cell = cell_index;
         //std::cout << cell_index << std::endl;
         //std::cout << instance << std::endl;

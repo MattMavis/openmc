@@ -267,7 +267,6 @@ std::vector<VolumeCalculation::Result> VolumeCalculation::execute() const
 
   return results;
 }
-
 void VolumeCalculation::to_hdf5(const std::string& filename,
   const std::vector<Result>& results) const
 {
@@ -396,7 +395,6 @@ int openmc_calculate_volumes() {
     // Run volume calculation
     const auto& vol_calc {model::volume_calcs[i]};
     auto results = vol_calc.execute();
-
     if (mpi::master) {
       std::string domain_type;
       if (vol_calc.domain_type_ == FILTER_CELL) {
