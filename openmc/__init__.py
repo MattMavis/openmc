@@ -29,6 +29,9 @@ from openmc.mixin import *
 from openmc.plotter import *
 from openmc.search import *
 from openmc.polynomial import *
+from openmc.volume_calculations import *
+from openmc.posmat_generator import *
+from openmc.meshtal_generator import *
 from . import examples
 
 # Import a few convencience functions that used to be here

@@ -179,6 +179,10 @@ class Settings(object):
         self._ptables = None
         self._seed = None
         self._survival_biasing = None
+        self._mcr2s = None
+        self._mcr2s_spatial_sampling = None
+        self._mcr2s_energy_sampling = None
+        self._mcr2s_remax = None
 
         # Shannon entropy mesh
         self._entropy_mesh = None
@@ -279,6 +283,22 @@ class Settings(object):
     @property
     def survival_biasing(self):
         return self._survival_biasing
+
+    @property
+    def mcr2s(self):
+        return self._mcr2s
+
+    @property
+    def mcr2s_spatial_sampling(self):
+        return self._mcr2s_spatial_sampling
+    
+    @property
+    def mcr2s_energy_sampling(self):
+        return self._mcr2s_energy_sampling
+    
+    @property
+    def mcr2s_remax(self):
+        return self._mcr2s_remax
 
     @property
     def entropy_mesh(self):
@@ -524,6 +544,26 @@ class Settings(object):
         cv.check_type('survival biasing', survival_biasing, bool)
         self._survival_biasing = survival_biasing
 
+    @mcr2s.setter
+    def mcr2s(self, mcr2s):
+        cv.check_type('mcr2s', mcr2s, bool)
+        self._mcr2s = mcr2s
+
+    @mcr2s_spatial_sampling.setter
+    def mcr2s_spatial_sampling(self, mcr2s_spatial_sampling):
+        cv.check_type('mcr2s_spatial_sampling', mcr2s_spatial_sampling, ['uniform','analogue'])
+        self._mcr2s_spatial_sampling = mcr2s_spatial_sampling
+    
+    @mcr2s_energy_sampling.setter
+    def mcr2s_energy_sampling(self, mcr2s_energy_sampling):
+        cv.check_type('mcr2s_energy_sampling', mcr2s_energy_sampling, ['uniform','analogue'])
+        self._mcr2s_energy_sampling = mcr2s_energy_sampling
+
+    @mcr2s_remax.setter
+    def mcr2s_remax(self, mcr2s_remax):
+        cv.check_type('mcr2s_remax', mcr2s_remax, Integral)
+        self._mcr2s_remax = mcr2s_remax
+    
     @cutoff.setter
     def cutoff(self, cutoff):
         if not isinstance(cutoff, Mapping):
@@ -815,6 +855,26 @@ class Settings(object):
             element = ET.SubElement(root, "survival_biasing")
             element.text = str(self._survival_biasing).lower()
 
+    def _create_mcr2s_subelement(self, root):
+        if self._mcr2s is not None:
+            element = ET.SubElement(root, "mcr2s")
+            element.text = str(self._mcr2s).lower()
+    
+    def _create_mcr2s_spatial_sampling_subelement(self, root):
+        if self._mcr2s_spatial_sampling is not None:
+            element = ET.SubElement(root, "mcr2s_spatial_sampling")
+            element.text = str(self._mcr2s_spatial_sampling).lower()
+    
+    def _create_mcr2s_energy_sampling_subelement(self, root):
+        if self._mcr2s_energy_sampling is not None:
+            element = ET.SubElement(root, "mcr2s_energy_sampling")
+            element.text = str(self._mcr2s_energy_sampling).lower()
+    
+    def _create_mcr2s_remax_subelement(self, root):
+        if self._mcr2s_remax is not None:
+            element = ET.SubElement(root, "mcr2s_remax")
+            element.text = str(self._mcr2s_remax)
+
     def _create_cutoff_subelement(self, root):
         if self._cutoff is not None:
             element = ET.SubElement(root, "cutoff")
@@ -1045,6 +1105,26 @@ class Settings(object):
         if text is not None:
             self.survival_biasing = text in ('true', '1')
 
+    def _mcr2s_from_xml_element(self, root):
+        text = get_text(root, 'mcr2s')
+        if text is not None:
+            self.mcr2s = text in ('true', '1')
+
+    def _mcr2s_spatial_sampling_from_xml_element(self, root):
+        text = get_text(root, 'mcr2s_spatial_sampling')
+        if text is not None:
+            self.mcr2s_spatial_sampling = text
+
+    def _mcr2s_energy_sampling_from_xml_element(self, root):
+        text = get_text(root, 'mcr2s_energy_sampling')
+        if text is not None:
+            self.mcr2s_energy_sampling = text
+
+    def _mcr2s_remax_from_xml_element(self, root):
+        text = get_text(root, 'mcr2S_remax')
+        if text is not None:
+            self.mcr2s_remax = int(text)
+
     def _cutoff_from_xml_element(self, root):
         elem = root.find('cutoff')
         if elem is not None:
@@ -1189,6 +1269,10 @@ class Settings(object):
         self._create_ptables_subelement(root_element)
         self._create_seed_subelement(root_element)
         self._create_survival_biasing_subelement(root_element)
+        self._create_mcr2s_subelement(root_element)
+        self._create_mcr2s_spatial_sampling_subelement(root_element)
+        self._create_mcr2s_energy_sampling_subelement(root_element)
+        self._create_mcr2s_remax_subelement(root_element)
         self._create_cutoff_subelement(root_element)
         self._create_entropy_mesh_subelement(root_element)
         self._create_trigger_subelement(root_element)
@@ -1255,6 +1339,10 @@ class Settings(object):
         settings._ptables_from_xml_element(root)
         settings._seed_from_xml_element(root)
         settings._survival_biasing_from_xml_element(root)
+        settings._mcr2s_from_xml_element(root)
+        settings._mcr2s_spatial_sampling_from_xml_element(root)
+        settings._mcr2s_energy_sampling_from_xml_element(root)
+        settings._mcr2s_remax_from_xml_element(root)
         settings._cutoff_from_xml_element(root)
         settings._entropy_mesh_from_xml_element(root)
         settings._trigger_from_xml_element(root)
