@@ -318,14 +318,3 @@ posmat.generator(volumes,bounds)
 
 meshtal = openmc.meshtal()
 meshtal.generator(wkDir,bounds,settings,mesh_tally,energy_bins)
-
-# open the results file
-sp = openmc.StatePoint(wkDir + '/statepoint.'+str(batches)+'.h5')
-
-# access the flux tally
-flux_tally = sp.get_tally(scores=tallies_to_plot)  # change flux to absorption
-flux_slice = flux_tally.get_slice(scores=tallies_to_plot) # change flux to absorption
-flux_slice.mean.shape = (mesh_width, mesh_height)
-
-fig = plt.subplot()
-plt.show(fig.imshow(flux_slice.mean))
