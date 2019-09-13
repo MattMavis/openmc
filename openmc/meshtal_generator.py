@@ -34,15 +34,13 @@ class meshtal():
         for n in range(bounds.nint[2]):
             tally_results[('mesh 1','z')].replace(n,(bounds.lower_left[2]+(bounds.pitch*(n-1)+(bounds.pitch/2))),inplace=True)
 
-        #Resructure the data frame into the write format
-        tally_results.loc[:,'X'] = tally_results[('mesh 1','x')]
-        tally_results.loc[:,'Y'] = tally_results[('mesh 1','y')]
-        tally_results.loc[:,'Z'] = tally_results[('mesh 1','z')]
+        #Resructure the data frame into the right format
+        tally_results.columns = [' '.join(col).strip() for col in tally_results.columns.values]
+        tally_results.rename(columns={'mesh 1 x': 'X','mesh 1 y': 'Y','mesh 1 z': 'Z'},inplace=True)
         #Remove unnecessary data
-        tally_results = tally_results.drop("energy high [eV]",axis=1)
-        tally_results = tally_results.drop("nuclide",axis=1)
-        tally_results = tally_results.drop("score",axis=1)
-        tally_results = tally_results.drop("mesh 1",axis=1)
+        tally_results.drop("energy high [eV]",axis=1, inplace=True)
+        tally_results.drop("nuclide",axis=1, inplace=True)
+        tally_results.drop("score",axis=1, inplace=True)
         if 'std. dev.' in tally_results.columns:
             tally_results = tally_results[['energy low [eV]','X','Y','Z','mean','std. dev.']]
             tally_results.head()
