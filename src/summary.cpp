@@ -27,6 +27,7 @@ void write_summary()
 
   // Terminate access to the file.
   file_close(file);
+  write_message("Summary.h5 Written!", 5);
 }
 
 void write_header(hid_t file)

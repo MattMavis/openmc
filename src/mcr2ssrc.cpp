@@ -17,7 +17,7 @@
 #include "openmc/error.h"
 #include "openmc/constants.h"
 #include "openmc/locations.h"
-#include "/home/mmavis/openmc/vendor/cr2s/cR2Smodules.h"
+#include "../vendor/cr2s/cR2Smodules.h"
 #include "openmc/cR2Sheader.h"
 #include "openmc/particle.h"
 #include "openmc/cR2Sarray.h"
@@ -35,28 +35,9 @@ static int spatial_sampling = 0;
 static int energy_sampling = 0;
 static int remax;
 static int nmeshes;
-static int verbose_int = 1;
+static int verbose_int = 0;
 static int ignore_cell_int = 0;
 static double total_src;
-
-
-
-
-
-//*** Params explanation ***//
-/*
-  params[0]  = spatial sampling mode
-              0 = uniform sampling of active voxels.
-                  Weight correction for voxel selection and cell under voxel selection <default>
-              1 = analogue sampling of active voxels
-                  Weight correction for cell under voxel selection.
-                  cell under mesh selection.
-  params[1]  = energy sampling mode
-               0 = analogue sampling of energy bins.
-               1 = uniform sampling of active energy bins
-  params[2] = If > 0, ignore cell under mesh cell numbers (e.g. dummy cell data where cell=0).
-  params[3]  = number of spatial retries before abandoning voxel [optional, default = 1000]
-*/  
 
 
 // Read source file //
@@ -80,12 +61,8 @@ void ReadCDGS()
   // Find the correct transform number //
   // Transforms not currently implemented//
   
-  
   std::cout << "cR2S Source _ finished reading data" << std::endl;
-  //std::cout << src_pointer << std::endl;
-  //std::cout << &nmeshes << std::endl;
-  //std::cout << &total_src << std::endl;
-  //std::cout << verbose_int << std::endl;
+
 }
 
 void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v, 
@@ -118,35 +95,39 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
   
   
   // Set values from user parameters //
+
+  /*   spatial sampling mode
+              0 = uniform sampling of active voxels.
+                  Weight correction for voxel selection and cell under voxel selection <default>
+              1 = analogue sampling of active voxels
+                  Weight correction for cell under voxel selection.
+                  cell under mesh selection. */
   spatial_sampling = int(settings::mcr2s_spatial_sampling);
-  std::cout << "spatial = " << spatial_sampling << std::endl;
 
-  energy_sampling = int(settings::mcr2s_energy_sampling);    
-  std::cout << "energy = " << energy_sampling << std::endl;
+  /* energy sampling mode
+               0 = analogue sampling of energy bins.
+               1 = uniform sampling of active energy bins */
+  energy_sampling = int(settings::mcr2s_energy_sampling);
 
+  /* If > 0, ignore cell under mesh cell numbers (e.g. dummy cell data where cell=0). */
   ignore_cell_int = int(IGNORE_CELL_UNDER_MESH);
-  std::cout << "ignore = " << ignore_cell_int << std::endl;
   
+  /* number of spatial retries before abandoning voxel [optional, default = 1000] */
   remax = int(settings::mcr2s_remax);
-  std::cout << "remax = " << remax << std::endl;
 
-  verbose_int = 1;
-  
-  std::cout << "Setting random number" << std::endl;
+  verbose_int = 0;
+
   prn_set_stream(STREAM_SOURCE);                // Left untouched //
   rnd = prn();                                  // Initialised random number //
   
 
 
-  //std::cout << "Setting initial variables" << std::endl;
   *wgt = 1.0;
   cell = 0;
   mat = 0;
   mesh_idx = 0;
   random_numbers = NULL;
   
-  std::cout << "Starting mesh_selection" << std::endl;
-  std::cout << src_pointer << std::endl;
   c_mesh_selection(src_pointer, spatial_sampling, rnd, total_src, &mesh_idx, wgt, verbose_int);
 
  // Restart point, if re-sampling can't find acceptable cell within limit of attemps //
@@ -156,13 +137,7 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
       
     prn_set_stream(STREAM_SOURCE);
     rnd = prn();
-    //std::cout << rnd << std::endl;
-    std::cout << "Starting voxel_selection" << std::endl;
-    std::cout << src_pointer << std::endl;
-    //std::cout << mesh_idx << std::endl;
-    //std::cout << spatial_sampling << std::endl;
-    //std::cout << rnd << std::endl;
-    //std::cout << wgt << std::endl;
+
     c_voxel_selection(src_pointer, mesh_idx, spatial_sampling, rnd, &selected_voxel, &selected_mesh_element, &i, &j, &k, wgt, verbose_int);
   
     if (verbose_int == 1) printf("Active voxel index : %d\n",selected_mesh_element);
@@ -170,21 +145,14 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
 
     for (resamc=0;resamc<remax;resamc++)
     {   
-        ///std::cout << "Sample " << resamc << std::endl;
-        //std::cout << "Get random Number" << std::endl;
         random_numbers = get_random_numbers(3, ID);
-        //std::cout << "Mesh type" << std::endl;
         if(c_get_meshtype(src_pointer,mesh_idx) == 1)
         {
-            //std::cout << "Rec" << std::endl;
             c_rec_pos_sample(src_pointer, mesh_idx, i,  j,  k, random_numbers, x, y, z);
-            //std::cout << "Sampled Rec" << std::endl;
         }
         else if (c_get_meshtype(src_pointer,mesh_idx) == 2)
         {
-            //std::cout << "Cyl" << std::endl;
             c_cyl_pos_sample(src_pointer, mesh_idx, i,  j,  k, random_numbers, x, y, z);
-            //std::cout << "Sampled Cyl" << std::endl;
         }    
         else if (c_get_meshstruc(src_pointer,mesh_idx) == 2)
         {
@@ -199,28 +167,20 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
         int n_reject = 0;
         static int n_accept = 0;
        
-        
         double xyz[] {*x,*y,*z};
        
         int32_t cell_index, instance;
-        std::cout << "Find Cell" << std::endl;
-        openmc_find_cell(xyz, &cell_index, &instance); //seg faulting
-        std::cout << "Cell Found" << std::endl;
+        openmc_find_cell(xyz, &cell_index, &instance);
         cell = cell_index;
-        //std::cout << cell_index << std::endl;
-        //std::cout << instance << std::endl;
         const auto& c = model::cells[cell_index];
         auto mat_index = c->material_.size() == 1
         ? c->material_[0] : c->material_[instance];
-        //std::cout << "mat_index = " << mat_index << std::endl;
         if (mat_index == MATERIAL_VOID) {
             mat = 0; // If material not found, assume to be void = 0 //
           }
         else {
             mat = mat_index;
         }
-        //std::cout << "mat_index = " << mat_index << std::endl;
-        //std::cout << mat << std::endl;
         c_check_position(src_pointer, mesh_idx, selected_mesh_element, cell, (double)1.0, (int)mat, ignore_cell_int, &resample_in_voxel, &selected_cell, verbose_int);
         
         if (resample_in_voxel == 0) 

@@ -2,13 +2,14 @@
 
 import openmc
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
+from pylab import figure, cm
 import os
 import h5py
 import numpy as np
 import datetime
 from string import Formatter
 from sys import getsizeof
- 
 
 mats = openmc.Materials()
 #Steel and water
@@ -123,6 +124,8 @@ tally_cell_4_cylinder = openmc.YCylinder(r=60)
 #Source back
 source_back = openmc.YPlane(y0=10)
 
+
+
 #cells
 #Plug hole cell
 plug_hole_region = -plug_hole & +plug_front & -SW_back
@@ -135,7 +138,7 @@ SW_cylinder_cell.fill = Steel_Water
 
 
 #Steel back plate
-steel_back_plate_region = -SW_cylinder & +SW_back & -inner_cylinder_back & -plug_back
+steel_back_plate_region = -SW_cylinder & +SW_back & +inner_cylinder_back & -plug_back
 steel_back_plate_cell = openmc.Cell(region=steel_back_plate_region)
 steel_back_plate_cell.fill = Steel
 
@@ -180,12 +183,15 @@ tally_3_cell = openmc.Cell(region=tally_3_region)
 tally_4_region = -tally_cell_4_cylinder & +tally_cell_3_cylinder & +tally_cell_front & -boundary_back
 tally_4_cell = openmc.Cell(region=tally_4_region)
 
+#Tally cells
+tally_cells_region = -outer_cylinder & +tally_cell_4_cylinder & +tally_cell_front & -boundary_back
+tally_cells_cell = openmc.Cell(region=tally_cells_region)
 
 #Boundary cell
 boundary_region = -boundary_front & +boundary_back & +outer_cylinder
 boundary_cell = openmc.Cell(region=boundary_region)
 
-universe = openmc.Universe(0,name='Main Universe',cells=[plug_hole_cell,SW_cylinder_cell,steel_back_plate_cell,inner_cylinder_cell,gap_2cm_cell,steel_cylinder_cell,source_cell,front_void_gap_cell,back_void_gap_cell,tally_1_cell,tally_2_cell,tally_3_cell,tally_4_cell,boundary_cell])
+universe = openmc.Universe(0,name='Main Universe',cells=[plug_hole_cell,SW_cylinder_cell,steel_back_plate_cell,inner_cylinder_cell,gap_2cm_cell,steel_cylinder_cell,source_cell,front_void_gap_cell,back_void_gap_cell,tally_1_cell,tally_2_cell,tally_3_cell,tally_4_cell,tally_cells_cell,boundary_cell])
 
 geom = openmc.Geometry(universe)
 geom.export_to_xml()
@@ -197,10 +203,10 @@ print ("geo export complete")
 #Initialise openmc settings
 settings = openmc.Settings()
 #Initialise mesh limits and dimensions
-lower_left = (-100,0,-100)
-upper_right = (100,700,100)
+lower_left = (-100,110,-100)
+upper_right = (100,660,100)
 pitch = 5
-wkDir = '/home/mmavis/openmc/openmc2/bin'
+wkDir = '/home/mmavis/openmc/openmc3/bin'
 volCalc = openmc.calculate_voxel_volumes()
 volCalc.lower_left = lower_left
 volCalc.upper_right = upper_right
@@ -220,7 +226,7 @@ print("defining source parameters")
 # Makes the 3d "cube" style geometry 
 vox_plot = openmc.Plot()
 vox_plot.type = 'voxel'
-vox_plot.width = (1000., 1000., 1000.)
+vox_plot.width = (300., 2000., 300.)
 vox_plot.pixels = (300, 300, 300)
 vox_plot.filename = 'plot_3d_vol_test'
 vox_plot.color_by = 'material'
@@ -241,10 +247,11 @@ openmc.plot_geometry(openmc_exec= wkDir + "/openmc")
 # Source #
 ##########
 # Define source parameters
-batches = 2
+batches = 100
 #settings.verbosity = 9
+settings.output = {'tallies': False}
 settings.batches = batches
-settings.inactive = 0
+settings.inactive = 9
 particles = 1e8
 settings.particles = int(particles)
 print("Particle = " + str(particles))
@@ -252,42 +259,41 @@ settings.run_mode = 'fixed source'
 histories = (settings.particles*batches) - (settings.inactive*batches)
 source = openmc.Source()
 source.angle = openmc.stats.Isotropic()
-#source.energy = openmc.stats.Discrete([14e6], [1])
-source.energy = openmc.stats.Muir(e0=14080000.0, m_rat=5.0, kt=20000.0)
+source.energy = openmc.stats.Discrete([14e6], [1])
+#source.energy = openmc.stats.Muir(e0=14080000.0, m_rat=5.0, kt=20000.0)
 strength = 2e19
 source.strength = int(strength)
-source.space = openmc.stats.Point((0,10,0))
+source.space = openmc.stats.Box((-100,0,-100),(100,10,100))
 settings.source = source
 xml_source = source.to_xml_element()
 settings.export_to_xml()
 print("settings exported")
 print("defining tally mesh")
 
-#Define Tally Mesh
+#Define Tally Mesh parameters
 mesh_upper_right = upper_right
 mesh_lower_left = lower_left
 mesh = openmc.RegularMesh()
-xdimension = len(bounds_x) -1
-ydimension = len(bounds_y) -1
-zdimension = len(bounds_z) -1
+xdimension = bounds.nint[0] -1
+ydimension = bounds.nint[1] -1
+zdimension = bounds.nint[2] -1
 mesh.dimension = [xdimension, ydimension, zdimension]
 mesh.width = [pitch,pitch,pitch]
 mesh.lower_left = mesh_lower_left
+
 
 #Tallies
 tallies = openmc.Tallies()
 
 #Mesh Filter
 mesh_filter = openmc.MeshFilter(mesh)
-mesh_height = pitch
-mesh_width = pitch
 mesh_tally = openmc.Tally(1,name='tallies_on_mesh')
 
 #Energy Filter
 energy_bins = openmc.mgxs.GROUP_STRUCTURES['VITAMIN-J-175']
 energy_filter = openmc.EnergyFilter(energy_bins)
 
-mesh_tally.filters = [mesh_filter,energy_filter]
+mesh_tally.filters = [mesh_filter] #energy_filter
 tallies_to_plot = 'flux'
 mesh_tally.scores = [tallies_to_plot]
 tallies.append(mesh_tally)
@@ -299,16 +305,40 @@ print ("defining plot")
 
 #Run OpenMC
 print("running OpenMC")
-openmc.run(openmc_exec= wkDir + '/openmc',threads=16,mpi_args=['mpiexec', '-n', '16'])
+openmc.run(openmc_exec= wkDir + '/openmc',threads=16,mpi_args=['mpiexec', '-n', '12'])
 
+sp = openmc.StatePoint('statepoint.'+str(batches)+'.h5')
+tally = sp.get_tally(scores=['flux'])
+print(tally.mean.shape)
+print(tally)
+flux = tally.get_slice(scores=['flux'])
+print(flux.mean.shape)
+flux = flux/125
+flux.mean.shape = (xdimension, ydimension, zdimension)
 
-print ("defining volumes to calculate")
+flux_mean_data_1 = (flux.mean[20,:,:])
+plt.imshow(flux_mean_data_1,cmap=cm.jet, norm=LogNorm(vmin=1e8, vmax=1e15))
+plt.colorbar()
+plt.savefig('X.png')
+plt.clf()
+
+flux_mean_data_2 = (flux.mean[:,55,:])
+plt.imshow(flux_mean_data_2,cmap=cm.jet, norm=LogNorm(vmin=1e8, vmax=1e15))
+plt.colorbar()
+plt.savefig('Y.png')
+plt.clf()
+
+flux_mean_data_3 = (flux.mean[:,:,20])
+plt.imshow(flux_mean_data_3,cmap=cm.jet, norm=LogNorm(vmin=1e8, vmax=1e15))
+plt.colorbar()
+plt.savefig('Z.png')
+plt.clf()
+
+#print ("defining volumes to calculate")
 volumes = volCalc.calculateVolumes(wkDir, mats)
 
 
 #Following is the code for taking the results read in from the volume_*.h5 files and outputting the results to the posmat.txt file.
-
-#Read in the volume resutls from files and add them to the results array
 
 ####################
 # File Output Code #

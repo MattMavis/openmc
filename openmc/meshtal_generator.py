@@ -18,7 +18,10 @@ class meshtal():
         #Create a dataframe from the tally results
         tally_results = flux_tally.get_pandas_dataframe()
         tally_number = 1 #figure out a way to change this to array of ids
-        print(tally_results)
+        #Remove unnecessary data
+        tally_results.drop("energy high [eV]",axis=1, inplace=True)
+        tally_results.drop("nuclide",axis=1, inplace=True)
+        tally_results.drop("score",axis=1, inplace=True)
         df_length = len(tally_results.index)
 
         #Turn the mesh index into actual xyz coordinates of the midpoints of the mesh cells
@@ -37,10 +40,7 @@ class meshtal():
         #Resructure the data frame into the right format
         tally_results.columns = [' '.join(col).strip() for col in tally_results.columns.values]
         tally_results.rename(columns={'mesh 1 x': 'X','mesh 1 y': 'Y','mesh 1 z': 'Z'},inplace=True)
-        #Remove unnecessary data
-        tally_results.drop("energy high [eV]",axis=1, inplace=True)
-        tally_results.drop("nuclide",axis=1, inplace=True)
-        tally_results.drop("score",axis=1, inplace=True)
+        
         if 'std. dev.' in tally_results.columns:
             tally_results = tally_results[['energy low [eV]','X','Y','Z','mean','std. dev.']]
             tally_results.head()

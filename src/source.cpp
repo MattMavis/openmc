@@ -310,18 +310,15 @@ void initialize_source()
         simulation::work_index[mpi::rank] + i + 1;
       set_particle_seed(id);
       // sample external source distribution from MCR2S commonfile
-      //std::cout << i << std::endl;
       simulation::source_bank[i] = sample_external_MCR2S_source();
     }
   } else {
     // Generation source sites from specified distribution in user input
-    std::cout << "Producing source external source distribution" << std::endl;
     for (int64_t i = 0; i < simulation::work_per_rank; ++i) {
       // initialize random number seed
       int64_t id = simulation::total_gen*settings::n_particles +
         simulation::work_index[mpi::rank] + i + 1;
       set_particle_seed(id);
-      //std::cout << i << std::endl;
       // sample external source distribution
       
       simulation::source_bank[i] = sample_external_source();

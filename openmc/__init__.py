@@ -32,6 +32,7 @@ from openmc.polynomial import *
 from openmc.volume_calculations import *
 from openmc.posmat_generator import *
 from openmc.meshtal_generator import *
+from openmc.vti_generator import *
 from . import examples
 
 # Import a few convencience functions that used to be here

@@ -247,7 +247,7 @@ void read_settings_xml()
       mcr2s_energy_sampling = MCR2S_ANALOGUE_ENERGY_SAMPLING;
     }
   
-    // Check for energy sampling mode. If non given default to analogue.
+    // Check for energy sampling mode. If non given default to uniform.
     if (check_for_node(root, "mcr2s_spatial_sampling")) {
       auto temp_str = get_node_value(root, "mcr2s_spatial_sampling", true, true);    
       if (temp_str == "uniform"){
@@ -256,7 +256,7 @@ void read_settings_xml()
         mcr2s_spatial_sampling = MCR2S_ANALOGUE_SPATIAL_SAMPLING;
       }
     } else {
-      mcr2s_spatial_sampling = MCR2S_ANALOGUE_SPATIAL_SAMPLING;
+      mcr2s_spatial_sampling = MCR2S_UNIFORM_SPATIAL_SAMPLING;
     }
     //Check for user inputted spatial retry amount. If non then default to 1000.
     if (check_for_node(root,"mcr2s_remax")) {
