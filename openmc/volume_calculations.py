@@ -84,14 +84,17 @@ class calculate_voxel_volumes(object):
                         
                         if lower_left_z >= self.upper_right[2]:
                             break
-
+                        #Work out the upper bounds of the bounding box
                         upper_right_x = lower_left_x + pitch
                         upper_right_y = lower_left_y + pitch
                         upper_right_z = lower_left_z + pitch
                         upper_right = (upper_right_x, upper_right_y, upper_right_z)
+                        #Find middle co-ordinate of selected voxel
                         mid_coord = (lower_left_x + (pitch/2),lower_left_y + (pitch/2),lower_left_z + (pitch/2))
                         resultCoord.append(mid_coord)
+                        #Create settings for a volume calculation in selected mesh
                         vol_calc = openmc.VolumeCalculation(mats, 10000, lower_left, upper_right)
+                        #Add volume calculation setting to array of volume calculations
                         vol_calc_array.append(vol_calc)
                         j += 1
                         lower_left_z += pitch
@@ -109,7 +112,9 @@ class calculate_voxel_volumes(object):
                 m=1
                 print(j)
                 while m <= ((len(bounds.ybounds)-1)*(len(bounds.zbounds)-1)):
+                    #Read in volume results from volume files
                     vol_calc.load_results(wkDir + '/volume_' + str(m) +'.h5')
+                    #Add volume results to results array
                     results.append(vol_calc.volumes)
                     m+=1
                 print(str(m-1) + " Results Read!")
