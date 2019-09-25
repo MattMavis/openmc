@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <typeinfo>
+#include <fstream>
 
 #include "openmc/bank.h"
 #include "openmc/constants.h"
@@ -213,7 +214,14 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
     free(random_numbers);
    
 
-    if (verbose_int == 1) printf("%d,%f,%f,%f,%ld,%f,%f\n", selected_voxel,*x,*y,*z,cell,*E,*wgt);  
+    if (verbose_int == 1)
+    {
+	    printf("%d,%f,%f,%f,%ld,%f,%f\n", selected_voxel,*x,*y,*z,cell,*E,*wgt);
+	    std::ofstream ofile;
+	    ofile.open("SourceParticles.txt", std::ios::app);
+	    ofile << selected_voxel << " " << *x << " " << *y << " " << *z << " " << cell << " " << *E << " " << wgt << std::endl;
+	    ofile.close();
+    }
     
     break;
   }
