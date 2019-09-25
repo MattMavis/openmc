@@ -40,10 +40,13 @@ class meshtal():
         #Resructure the data frame into the right format
         tally_results.columns = [' '.join(col).strip() for col in tally_results.columns.values]
         tally_results.rename(columns={'mesh 1 x': 'X','mesh 1 y': 'Y','mesh 1 z': 'Z'},inplace=True)
-        
+
+        tally_results['mean'] = tally_results['mean']/1e6
+        tally_results['energy low [eV]'] = tally_results['energy low [eV]']/1e6
         if 'std. dev.' in tally_results.columns:
             tally_results = tally_results[['energy low [eV]','X','Y','Z','mean','std. dev.']]
             tally_results.head()
+            tally_results['std. dev.'] = tally_results['std. dev.']/1e6
         else:
             tally_results = tally_results[['energy low [eV]','X','Y','Z','mean']]
             tally_results.head()
@@ -60,6 +63,7 @@ class meshtal():
         tally_results.reset_index(inplace=True,drop=True)
 
         energy_bins_np = np.array([energy_bins])
+        energy_bins_np = energy_bins_np/1e6
         #Turn dataframe into numpy array
         tally_results = tally_results.to_numpy()
         #Turn titles for columns into an array
