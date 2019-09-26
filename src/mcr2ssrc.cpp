@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <typeinfo>
+#include <fstream>
 
 #include "openmc/bank.h"
 #include "openmc/constants.h"
@@ -91,6 +92,7 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
   double * random_numbers;
   long ID;
   char dummyString[4*MAX_STR];
+  int print_source_particles;
   
   
   
@@ -116,6 +118,7 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
   remax = int(settings::mcr2s_remax);
 
   verbose_int = 0;
+  print_source_particles = 1;
 
   prn_set_stream(STREAM_SOURCE);                // Left untouched //
   rnd = prn();                                  // Initialised random number //
@@ -213,8 +216,14 @@ void MCR2SSrc(long src, double *x, double *y, double *z, double *u,  double *v,
     free(random_numbers);
    
 
-    if (verbose_int == 1) printf("%d,%f,%f,%f,%ld,%f,%f\n", selected_voxel,*x,*y,*z,cell,*E,*wgt);  
-    
+    if (print_source_particles == 1)
+    {
+	    printf("%d,%f,%f,%f,%ld,%f,%f\n", selected_voxel,*x,*y,*z,cell,*E,*wgt);
+	    std::ofstream ofile;
+	    ofile.open("SourceParticles.txt", std::ios::app);
+	    ofile << selected_voxel << " " << *x << " " << *y << " " << *z << " " << cell << " " << *E << " " << wgt << std::endl;
+	    ofile.close();
+    }
     break;
   }
 }

@@ -12,14 +12,15 @@ from sys import getsizeof
 class meshtal():
     def generator(self,wkDir,bounds,settings,mesh_tally,energy_bins):
         #Create meshtal file
-        histories = (settings.particles*settings.batches) - (settings.inactive*settings.batches)
+        histories = (settings.particles*settings.batches)
         sp = openmc.StatePoint(wkDir + '/statepoint.'+str(settings.batches)+'.h5')
         flux_tally = sp.get_tally(scores=mesh_tally.scores)
         #Create a dataframe from the tally results
         tally_results = flux_tally.get_pandas_dataframe()
         tally_number = 1 #figure out a way to change this to array of ids
         #Remove unnecessary data
-        tally_results.drop("energy high [eV]",axis=1, inplace=True)
+        print(tally_results)
+        tally_results.drop("energy low [eV]",axis=1, inplace=True)
         tally_results.drop("nuclide",axis=1, inplace=True)
         tally_results.drop("score",axis=1, inplace=True)
         df_length = len(tally_results.index)
@@ -41,14 +42,15 @@ class meshtal():
         tally_results.columns = [' '.join(col).strip() for col in tally_results.columns.values]
         tally_results.rename(columns={'mesh 1 x': 'X','mesh 1 y': 'Y','mesh 1 z': 'Z'},inplace=True)
 
-        tally_results['mean'] = tally_results['mean']/1e6
-        tally_results['energy low [eV]'] = tally_results['energy low [eV]']/1e6
+        tally_results['mean'] = tally_results['mean']/(bounds.pitch**3)
+        tally_results['energy high [eV]'] = tally_results['energy high [eV]']/1e6
+        
         if 'std. dev.' in tally_results.columns:
-            tally_results = tally_results[['energy low [eV]','X','Y','Z','mean','std. dev.']]
+            tally_results = tally_results[['energy high [eV]','X','Y','Z','mean','std. dev.']] #'energy high [eV]',
             tally_results.head()
-            tally_results['std. dev.'] = tally_results['std. dev.']/1e6
+            tally_results['std. dev.'] = tally_results['std. dev.']
         else:
-            tally_results = tally_results[['energy low [eV]','X','Y','Z','mean']]
+            tally_results = tally_results[['energy high [eV]','X','Y','Z','mean']]#'energy high [eV]',
             tally_results.head()
             n=0
             std_dev_zeros = []
@@ -56,9 +58,9 @@ class meshtal():
                 std_dev_zeros.append(0)
             tally_results['std. dev.'] = std_dev_zeros
         #Rename columns
-        tally_results.rename(columns={'energy low [eV]': 'Energy', 'mean':'Results', 'std. dev.': 'Rel Error'}, inplace=True)
+        tally_results.rename(columns={'energy high [eV]': 'Energy', 'mean':'Results', 'std. dev.': 'Rel Error'}, inplace=True)#'energy high [eV]': 'Energy',
         #Sort the values by energy x,y,z
-        tally_results.sort_values(by=['Energy','X','Y','Z'],ascending=[True,True,True,True],inplace=True)
+        tally_results.sort_values(by=['Energy','X','Y','Z'],ascending=[True,True,True],inplace=True)#'Energy',
         #Remove index
         tally_results.reset_index(inplace=True,drop=True)
 
@@ -67,7 +69,7 @@ class meshtal():
         #Turn dataframe into numpy array
         tally_results = tally_results.to_numpy()
         #Turn titles for columns into an array
-        tally_titles = np.array([['Energy','X','Y','Z','Results','Rel Error']])
+        tally_titles = np.array([['Energy','X','Y','Z','Results','Rel Error']])#'Energy',
 
         #Open the posmat.txt file and clear it if it already exists. If not create it.
         open('meshtal.msht', 'w').close()
@@ -105,7 +107,7 @@ class meshtal():
             np.savetxt(tally_file,(energy_bins_np),fmt="%8.2e",newline='\n')
             tally_file.write("\n")
             #Write column titles
-            np.savetxt(tally_file,tally_titles,fmt="%11s %9s %9s %9s %11s %11s ",delimiter=',',newline='\n')
+            np.savetxt(tally_file,tally_titles,fmt="%9s %9s %9s %11s %11s ",delimiter=',',newline='\n')#%11s 
             #Write tally data
-            np.savetxt(tally_file,tally_results,fmt="%11.3e %9.3f %9.3f %9.3f %11.5e %11.5e",delimiter=' ',newline='\n')
+            np.savetxt(tally_file,tally_results,fmt="%9.3f %9.3f %9.3f %11.5e %11.5e",delimiter=' ',newline='\n')#%11.3e
         return

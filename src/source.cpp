@@ -260,7 +260,7 @@ Particle::Bank SourceDistribution::MCR2S() const
   site.r.x = x;
   site.r.y = y;
   site.r.z = z;
-  site.E = E;
+  site.E = E * 1e6;
   site.wgt = wgt;
   site.u = angle_->sample();
   

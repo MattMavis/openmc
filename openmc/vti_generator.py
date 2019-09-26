@@ -36,6 +36,9 @@ class vti_generator(object):
         # Get the results from the statepoint file from the tally
         Tally_1 = f['/tallies/tally 1']
         results = f['/tallies/tally 1/results'][()]
+        mesh_width = f['/tallies/meshes/mesh 1/width'][()]
+        # Seperate into x,y,z
+        x_width, y_width, z_width = mesh_width.T
         print(results)
         # Seperate the results into the flux and the std dev
         result_1, result_2 = results.T
@@ -43,21 +46,18 @@ class vti_generator(object):
         result_1 = np.reshape(result_1,(-1,1))
         result_2 =np.reshape(result_2,(-1,1))
         #Calculate the mean flux by dividing by the realisations and multiplying by the total particles
-        mean = (result_1/n_realisations)*Total_particles
+        mean = ((result_1/n_realisations)/(x_width*y_width*z_width))*Total_particles
         #Do the same to the std dev
         l=0
         std_dev = []
         print(mean.size)
         std_dev = (((result_2/n_realisations)-(result_1)**2)/(n_realisations-1))
-        std_dev = ((np.sqrt(std_dev))*Total_particles)
+        std_dev = (((np.sqrt(std_dev)))*Total_particles)/(x_width*y_width*z_width)
         # Get the mesh dimensions
         mesh_dimensions = f['/tallies/meshes/mesh 1/dimension'][()]
         # Seperate the mesh dimension into the x,y,z
         nx, ny, nz = mesh_dimensions.T
         # Get the mesh width
-        mesh_width = f['/tallies/meshes/mesh 1/width'][()]
-        # Seperate into x,y,z
-        x_width, y_width, z_width = mesh_width.T
         # Create an array with the widths
         width = (x_width,y_width,z_width)
         # Get the lower left co-ordinates of the mesh
