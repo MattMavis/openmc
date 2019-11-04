@@ -17,7 +17,7 @@ class posmat(object):
         l = 0
         outputVolPer = []
         #Calculate the total volume of the sampled areas.
-        total_volume = (volumes.pitch**3)                                           
+        total_volume = (volumes.width**3)                                           
         coord = 'X Cord','Y Cord','Z Cord'                                         
         #Break the results into the 2 seperate arrays.
         mat, vol = zip(*volumes.results[k].items())                                     
