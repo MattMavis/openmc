@@ -130,7 +130,7 @@ class calculate_voxel_volumes(object):
                 settings.export_to_xml()
                 #Run Openmc in volume calculation mode
                 print("calculating volumes")
-                openmc.calculate_volumes(openmc_exec= wkDir + '/openmc',mpi_args=['mpiexec', '-n', '16'],threads=16)
+                openmc.calculate_volumes(openmc_exec= wkDir + '/openmc',mpi_args=['mpiexec', '-n', '4'],threads=8)
                 print("Reading Results ...")
                 m=1
                 print(j)
