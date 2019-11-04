@@ -205,12 +205,12 @@ settings = openmc.Settings()
 #Initialise mesh limits and dimensions
 lower_left = (-100,110,-100)
 upper_right = (100,660,100)
-pitch = 5
+width = 5
 wkDir = '/home/mmavis/openmc/openmc3/bin'
 volCalc = openmc.calculate_voxel_volumes()
 volCalc.lower_left = lower_left
 volCalc.upper_right = upper_right
-volCalc.pitch = pitch
+volCalc.width = width
 bounds = volCalc.calculateBounds()
 bounds_x = bounds.xbounds
 bounds_y = bounds.ybounds
@@ -278,7 +278,7 @@ xdimension = bounds.nint[0] -1
 ydimension = bounds.nint[1] -1
 zdimension = bounds.nint[2] -1
 mesh.dimension = [xdimension, ydimension, zdimension]
-mesh.width = [pitch,pitch,pitch]
+mesh.width = [width,width,width]
 mesh.lower_left = mesh_lower_left
 
 
