@@ -18,10 +18,10 @@ class calculate_voxel_volumes(object):
 
     def calculateBounds(self):
         #Set the input bounds of the mesh. These bounds are the lower left and upper right corner. The width 
-        #(pitch. Change this name to width of the mesh cell and the starting mesh cell position.
+        #of the mesh cell and the starting mesh cell position.
         lower_left_x_int, lower_left_y_int, lower_left_z_int = self.lower_left
         upper_right_x_limit, upper_right_y_limit, upper_right_z_limit = self.upper_right
-        pitch = self.pitch
+        width = self.width
         xbound_value = lower_left_x_int
         ybound_value = lower_left_y_int
         zbound_value = lower_left_z_int
@@ -33,15 +33,15 @@ class calculate_voxel_volumes(object):
         #Iterate over the value of the x,y,z bounds until it exceeds the upper right x,y,z limits and store those value
         #in the bounds arrays.
         while xbound_value < upper_right_x_limit:
-            xbound_value += pitch
+            xbound_value += width
             bounds_x.append(xbound_value)
 
         while ybound_value < upper_right_y_limit:
-            ybound_value += pitch
+            ybound_value += width
             bounds_y.append(ybound_value)
 
         while zbound_value < upper_right_z_limit:
-            zbound_value += pitch
+            zbound_value += width
             bounds_z.append(zbound_value)
         
         #Append bounds arrays to self, along with the amount of bounds in each direction (x,y,z), so that it can be returned
@@ -51,14 +51,14 @@ class calculate_voxel_volumes(object):
         self.zbounds = bounds_z
         nint = (len(bounds_x),len(bounds_y),len(bounds_z))
         self.nint = nint
-        self.pitch = pitch
+        self.width = width
         return (self)
 
 
     def calculateVolumes(self, wkDir, mats):
         
         settings = openmc.Settings()
-        pitch = self.pitch
+        width = self.width
         #Call the function calculateBounds to calcualted the bounds of the mesh.
         bounds = self.calculateBounds()
         
@@ -105,12 +105,12 @@ class calculate_voxel_volumes(object):
                         if lower_left_z >= self.upper_right[2]:
                             break
                         #Work out the upper bounds of the bounding box of interest
-                        upper_right_x = lower_left_x + pitch
-                        upper_right_y = lower_left_y + pitch
-                        upper_right_z = lower_left_z + pitch
+                        upper_right_x = lower_left_x + width
+                        upper_right_y = lower_left_y + width
+                        upper_right_z = lower_left_z + width
                         upper_right = (upper_right_x, upper_right_y, upper_right_z)
                         #Find mid co-ordinate of selected voxel and add them to the resultCoord array.
-                        mid_coord = (lower_left_x + (pitch/2),lower_left_y + (pitch/2),lower_left_z + (pitch/2))
+                        mid_coord = (lower_left_x + (width/2),lower_left_y + (width/2),lower_left_z + (width/2))
                         resultCoord.append(mid_coord)
                         #Create settings for a volume calculation in selected mesh by supplying the domains to look for,e.g materials,
                         #the amount of samples, the lower left coordinate and upper right coordinate of the bounding box.
@@ -118,11 +118,11 @@ class calculate_voxel_volumes(object):
                         #Add volume calculation setting to array of volume calculations
                         vol_calc_array.append(vol_calc)
                         j += 1
-                        lower_left_z += pitch
+                        lower_left_z += width
 
-                    lower_left_y += pitch
+                    lower_left_y += width
 
-                lower_left_x += pitch
+                lower_left_x += width
                 
                 #Save the volume calculation settings for all mesh cells to openMC's settings variable and export them to the XML
                 #file
@@ -176,20 +176,20 @@ class calculate_voxel_volumes(object):
                         if lower_left_z >= self.upper_right[2]:
                             break
 
-                        upper_right_x = lower_left_x + pitch
-                        upper_right_y = lower_left_y + pitch
-                        upper_right_z = lower_left_z + pitch
+                        upper_right_x = lower_left_x + width
+                        upper_right_y = lower_left_y + width
+                        upper_right_z = lower_left_z + width
                         upper_right = (upper_right_x, upper_right_y, upper_right_z)
-                        mid_coord = (lower_left_x + (pitch/2),lower_left_y + (pitch/2),lower_left_z + (pitch/2))
+                        mid_coord = (lower_left_x + (width/2),lower_left_y + (width/2),lower_left_z + (width/2))
                         resultCoord.append(mid_coord)
                         vol_calc = openmc.VolumeCalculation(mats, 10000, lower_left, upper_right)
                         vol_calc_array.append(vol_calc)
                         j += 1
-                        lower_left_z += pitch
+                        lower_left_z += width
 
-                    lower_left_y += pitch
+                    lower_left_y += width
 
-                lower_left_x += pitch
+                lower_left_x += width
 
             settings.volume_calculations = vol_calc_array
             settings.export_to_xml()
